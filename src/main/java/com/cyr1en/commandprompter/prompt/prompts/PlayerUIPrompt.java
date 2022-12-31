@@ -34,8 +34,10 @@ import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class PlayerUIPrompt extends AbstractPrompt {
@@ -46,8 +48,8 @@ public class PlayerUIPrompt extends AbstractPrompt {
 
     public PlayerUIPrompt(CommandPrompter plugin, PromptContext context, String prompt) {
         super(plugin, context, prompt);
-        var cfgSize = getPlugin().getPromptConfig().playerUISize();
-        var parts = Arrays.asList(getPrompt().split("\\{br}"));
+        int cfgSize = getPlugin().getPromptConfig().playerUISize;
+        List<String> parts = Arrays.asList(getPrompt().split("\\{br}"));
         size = Math.max((cfgSize - (cfgSize % 9)) / 9, 2);
         gui = new ChestGui(size, color(parts.get(0)));
         this.headCache = plugin.getHeadCache();
@@ -56,13 +58,13 @@ public class PlayerUIPrompt extends AbstractPrompt {
     @Override
     public void sendPrompt() {
         gui.setOnClose(e -> getPromptManager().cancel(getContext().getSender()));
-        var p = (Player) getContext().getSender();
+        Player p = (Player) getContext().getSender();
 
-        var skullPane = new PaginatedPane(0, 0, 9, size - 1);
+        PaginatedPane skullPane = new PaginatedPane(0, 0, 9, size - 1);
 
-        var isSorted = getPlugin().getPromptConfig().sorted();
-        var isPerWorld = getPlugin().getPromptConfig().isPerWorld();
-        var skulls = isPerWorld ?
+        boolean isSorted = getPlugin().getPromptConfig().sorted;
+        boolean isPerWorld = getPlugin().getPromptConfig().isPerWorld;
+        List<ItemStack> skulls = isPerWorld ?
                 (isSorted ?
                         headCache.getHeadsSortedFor(p.getWorld().getPlayers()) :
                         headCache.getHeadsFor(p.getWorld().getPlayers())) :
@@ -82,10 +84,10 @@ public class PlayerUIPrompt extends AbstractPrompt {
     private void processClick(InventoryClickEvent e) {
         e.setCancelled(true);
         if (Objects.isNull(e.getCurrentItem())) return;
-        var name = Objects.requireNonNull(Objects.requireNonNull
+        String name = Objects.requireNonNull(Objects.requireNonNull
                 (e.getCurrentItem()).getItemMeta()).getDisplayName();
         name = Util.stripColor(name);
-        var ctx = new PromptContext(null, (Player) getContext().getSender(), name);
+        PromptContext ctx = new PromptContext(null, (Player) getContext().getSender(), name);
         getPlugin().getPromptManager().processPrompt(ctx);
         gui.setOnClose(null);
         ((Player) getContext().getSender()).closeInventory();

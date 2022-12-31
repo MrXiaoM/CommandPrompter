@@ -2,6 +2,7 @@ package com.cyr1en.commandprompter.prompt.ui;
 
 import com.cyr1en.commandprompter.CommandPrompter;
 import com.cyr1en.commandprompter.PluginLogger;
+import com.cyr1en.commandprompter.hook.Hook;
 import com.cyr1en.commandprompter.hook.hooks.SuperVanishHook;
 import com.cyr1en.commandprompter.util.Util;
 import com.google.common.cache.CacheBuilder;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class HeadCache implements Listener {
 
@@ -32,15 +34,15 @@ public class HeadCache implements Listener {
 
     public HeadCache(CommandPrompter plugin) {
         this.plugin = plugin;
-        this.format = plugin.getPromptConfig().skullNameFormat();
-        HEAD_CACHE = CacheBuilder.newBuilder().maximumSize(plugin.getPromptConfig().cacheSize())
-                .build(new CacheLoader<>() {
+        this.format = plugin.getPromptConfig().skullNameFormat;
+        HEAD_CACHE = CacheBuilder.newBuilder().maximumSize(plugin.getPromptConfig().cacheSize)
+                .build(new CacheLoader<Player, Optional<ItemStack>>() {
                     @Override
                     public @NotNull Optional<ItemStack> load(@NotNull Player key) {
                         if (!Bukkit.getOnlinePlayers().contains(key))
                             return Optional.empty();
                         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
-                        var skullMeta = makeSkullMeta(key, plugin.getPluginLogger());
+                        SkullMeta skullMeta = makeSkullMeta(key, plugin.getPluginLogger());
                         skull.setItemMeta(skullMeta);
                         return Optional.of(skull);
                     }
@@ -65,17 +67,17 @@ public class HeadCache implements Listener {
 
     private List<ItemStack> sortHeads(ArrayList<ItemStack> headList) {
         @SuppressWarnings("unchecked")
-        var copy = (ArrayList<ItemStack>) headList.clone();
+        List<ItemStack> copy = (ArrayList<ItemStack>) headList.clone();
         copy.sort((s1, s2) -> {
-            var n1 = Util.stripColor(Objects.requireNonNull(s1.getItemMeta()).getDisplayName());
-            var n2 = Util.stripColor(Objects.requireNonNull(s2.getItemMeta()).getDisplayName());
+            String n1 = Util.stripColor(Objects.requireNonNull(s1.getItemMeta()).getDisplayName());
+            String n2 = Util.stripColor(Objects.requireNonNull(s2.getItemMeta()).getDisplayName());
             return n1.compareToIgnoreCase(n2);
         });
         return copy;
     }
 
     public List<ItemStack> getHeadsFor(List<Player> players) {
-        var result = new ArrayList<ItemStack>();
+        List<ItemStack> result = new ArrayList<ItemStack>();
         for (Player player : players) {
             CommandPrompter.getInstance().getPluginLogger().debug("Player: " + player);
             getHeadFor(player).ifPresent(result::add);
@@ -88,16 +90,16 @@ public class HeadCache implements Listener {
     }
 
     public List<ItemStack> getHeadsSorted() {
-        var keys = HEAD_CACHE.asMap().entrySet().stream()
+        List<Player> keys = HEAD_CACHE.asMap().entrySet().stream()
                 .filter(entry -> entry.getValue().isPresent())
-                .map(Map.Entry::getKey).toList();
+                .map(Map.Entry::getKey).collect(Collectors.toList());
         return sortHeads((ArrayList<ItemStack>) getHeadsFor(keys));
     }
 
     public List<ItemStack> getHeads() {
         return HEAD_CACHE.asMap().values().stream()
                 .filter(Optional::isPresent)
-                .map(Optional::get).toList();
+                .map(Optional::get).collect(Collectors.toList());
     }
 
     private boolean checkNameFromItemStack(ItemStack is, String pName) {
@@ -107,9 +109,9 @@ public class HeadCache implements Listener {
 
 
     private SkullMeta makeSkullMeta(Player owningPlayer, PluginLogger logger) {
-        var skullMeta = (SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD);
+        SkullMeta skullMeta = (SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD);
         Objects.requireNonNull(skullMeta).setOwningPlayer(owningPlayer);
-        var name = String.format(format, owningPlayer.getName());
+        String name = String.format(format, owningPlayer.getName());
         skullMeta.setDisplayName(Util.color(name));
         logger.debug("Skull Meta: {%s. %s}", skullMeta.getDisplayName(), skullMeta.getOwningPlayer());
         return skullMeta;
@@ -118,8 +120,8 @@ public class HeadCache implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerLogin(PlayerLoginEvent e) {
-        var isInv = new AtomicBoolean(false);
-        var svHook = plugin.getHookContainer().getHook(SuperVanishHook.class);
+        AtomicBoolean isInv = new AtomicBoolean(false);
+        Hook<SuperVanishHook> svHook = plugin.getHookContainer().getHook(SuperVanishHook.class);
         plugin.getPluginLogger().debug("SV Hooked: " + svHook.isHooked());
         svHook.ifHooked(hook -> {
             if (hook.isInvisible(e.getPlayer()))

@@ -7,6 +7,7 @@ import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 public class ModifiedCommandMap extends SimpleCommandMap {
@@ -31,8 +32,8 @@ public class ModifiedCommandMap extends SimpleCommandMap {
      */
     private void rebuildKnownCommands() {
         try {
-            var commandMap = grabCommandMap();
-            var originalKnownCommands = grabKnownCommandsFromMap(commandMap);
+            SimpleCommandMap commandMap = grabCommandMap();
+            Map<String, Command> originalKnownCommands = grabKnownCommandsFromMap(commandMap);
             this.knownCommands.putAll(originalKnownCommands);
             plugin.getPluginLogger().warn("Finished rebuilding known commands.");
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -43,20 +44,20 @@ public class ModifiedCommandMap extends SimpleCommandMap {
     @SuppressWarnings("unchecked")
     private Map<String, Command> grabKnownCommandsFromMap(SimpleCommandMap commandMap)
             throws NoSuchFieldException, IllegalAccessException {
-        var mapField = commandMap.getClass().getSuperclass().getDeclaredField("knownCommands");
+        Field mapField = commandMap.getClass().getSuperclass().getDeclaredField("knownCommands");
         mapField.setAccessible(true);
         return (Map<String, Command>) mapField.get(commandMap);
     }
 
     private SimpleCommandMap grabCommandMap() throws NoSuchFieldException, IllegalAccessException {
-        var commandMapField = mapEncapsulator.getClass().getDeclaredField("commandMap");
+        Field commandMapField = mapEncapsulator.getClass().getDeclaredField("commandMap");
         commandMapField.setAccessible(true);
         return (SimpleCommandMap) commandMapField.get(mapEncapsulator);
     }
 
     @Override
     public boolean dispatch(CommandSender sender, String commandLine) throws CommandException {
-        var event = new CommandDispatchEvent(sender, commandLine);
+        CommandDispatchEvent event = new CommandDispatchEvent(sender, commandLine);
         Bukkit.getServer().getPluginManager().callEvent(event);
         if (event.isCancelled())
             return true;

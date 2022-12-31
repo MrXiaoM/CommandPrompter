@@ -27,6 +27,7 @@ package com.cyr1en.commandprompter.prompt;
 import com.cyr1en.commandprompter.CommandPrompter;
 import com.cyr1en.commandprompter.api.prompt.Prompt;
 import com.cyr1en.kiso.utils.SRegex;
+import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -50,13 +51,12 @@ public class PromptParser {
     }
 
     public void initRegex() {
-        var regex = plugin.getConfiguration().argumentRegex();
-        regex = regex.trim();
+        String regex = plugin.getConfiguration().argumentRegex.trim();
         this.escapedRegex = escapeRegex(regex);
     }
 
     private String escapeRegex(String regex) {
-        var escapedRegex = (String.valueOf(regex.charAt(0))).replaceAll("[^\\w\\s]", "\\\\$0") +
+        String escapedRegex = (String.valueOf(regex.charAt(0))).replaceAll("[^\\w\\s]", "\\\\$0") +
                 (regex.substring(1, regex.length() - 1)) +
                 (String.valueOf(regex.charAt(regex.length() - 1))).replaceAll("[^\\w\\s]", "\\\\$0");
         plugin.getPluginLogger().debug("Regex: " + regex);
@@ -68,7 +68,7 @@ public class PromptParser {
     }
 
     public boolean isParsable(PromptContext promptContext) {
-        var prompts = getPrompts(promptContext);
+        List<String> prompts = getPrompts(promptContext);
         return !prompts.isEmpty();
     }
 
@@ -79,10 +79,10 @@ public class PromptParser {
      * @return hashCode of the {@link PromptQueue} that was created.
      */
     public int parsePrompts(PromptContext promptContext) {
-        var prompts = getPrompts(promptContext);
+        List<String> prompts = getPrompts(promptContext);
         plugin.getPluginLogger().debug("Prompts: " + prompts);
 
-        var command = promptContext.getContent().trim();
+        String command = promptContext.getContent().trim();
         plugin.getPluginLogger().debug("Command: " + command);
         manager.getPromptRegistry().initRegistryFor(promptContext, command, getEscapedRegex());
 
@@ -90,14 +90,14 @@ public class PromptParser {
             plugin.getPluginLogger().debug("Parsing: " + prompt);
 
             sRegex.find(manager.getArgumentPattern(), prompt);
-            var arg = sRegex.getResultsList().isEmpty() ? "" : getCleanArg(sRegex.getResultsList().get(0));
+            String arg = sRegex.getResultsList().isEmpty() ? "" : getCleanArg(sRegex.getResultsList().get(0));
             plugin.getPluginLogger().debug("Argument in prompt: " + arg);
 
             Class<? extends Prompt> pClass = manager.get(arg);
             plugin.getPluginLogger().debug("Prompt to construct: " + pClass.getSimpleName());
             try {
-                var sender = promptContext.getSender();
-                var p = pClass.getConstructor(CommandPrompter.class, PromptContext.class, String.class)
+                CommandSender sender = promptContext.getSender();
+                Prompt p = pClass.getConstructor(CommandPrompter.class, PromptContext.class, String.class)
                         .newInstance(plugin, promptContext, cleanPrompt(prompt));
                 manager.getPromptRegistry().addPrompt(sender, p);
             } catch (NoSuchMethodException | InvocationTargetException
@@ -109,7 +109,7 @@ public class PromptParser {
     }
 
     private String cleanPrompt(String prompt) {
-        var clean = prompt.substring(1, prompt.length() - 1)
+        String clean = prompt.substring(1, prompt.length() - 1)
                 .replaceAll(manager.getArgumentPattern().toString(), "");
         plugin.getPluginLogger().debug("Cleaned prompt: " + clean);
         return clean;

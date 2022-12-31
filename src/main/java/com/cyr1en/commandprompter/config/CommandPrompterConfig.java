@@ -14,14 +14,15 @@ import java.util.List;
 @Configuration
 @ConfigPath("config.yml")
 @ConfigHeader({"Command Prompter", "Configuration"})
-public record CommandPrompterConfig(
-        Config rawConfig,
+public class CommandPrompterConfig {
+        Config rawConfig;
 
         @ConfigNode
         @NodeName("Prompt-Prefix")
         @NodeDefault("[&3Prompter&r] ")
         @NodeComment({"Set the plugin prefix"})
-        String promptPrefix,
+        public
+        String promptPrefix;
 
         @ConfigNode
         @NodeName("Prompt-Timeout")
@@ -30,7 +31,8 @@ public record CommandPrompterConfig(
                 "After how many seconds until",
                 "CommandPrompter cancels a",
                 "prompt"})
-        int promptTimeout,
+        public
+        int promptTimeout;
 
         @ConfigNode
         @NodeName("Cancel-Keyword")
@@ -38,7 +40,8 @@ public record CommandPrompterConfig(
         @NodeComment({
                 "Word that cancels command",
                 "prompting."})
-        String cancelKeyword,
+        public
+        String cancelKeyword;
 
         @ConfigNode
         @NodeName("Enable-Permission")
@@ -48,7 +51,8 @@ public record CommandPrompterConfig(
                 "before a player can use",
                 "the prompting feature", "",
                 "Checking for commandprompter.use"})
-        boolean enablePermission,
+        public
+        boolean enablePermission;
 
         @ConfigNode
         @NodeName("Update-Checker")
@@ -56,7 +60,7 @@ public record CommandPrompterConfig(
         @NodeComment({
                 "Allow CommandPrompter to",
                 "check if it's up to date."})
-        boolean updateChecker,
+        boolean updateChecker;
 
         @ConfigNode
         @NodeName("Argument-Regex")
@@ -67,7 +71,8 @@ public record CommandPrompterConfig(
                 "a prompt.", "",
                 "ONLY CHANGE THE FIRST AND LAST",
                 "I.E (.*?), {.*?}, or [.*?]"})
-        String argumentRegex,
+        public
+        String argumentRegex;
 
         @ConfigNode
         @NodeName("Debug-Mode")
@@ -75,7 +80,8 @@ public record CommandPrompterConfig(
         @NodeComment({
                 "Enable debug mode for CommandPrompter."
         })
-        boolean debugMode,
+        public
+        boolean debugMode;
 
         @ConfigNode
         @NodeName("Enable-Unsafe")
@@ -87,7 +93,8 @@ public record CommandPrompterConfig(
                 "modify the command map and",
                 "catch dispatched commands"
         })
-        boolean enableUnsafe,
+        public
+        boolean enableUnsafe;
 
         @ConfigNode
         @NodeName("Modification-Delay")
@@ -103,7 +110,8 @@ public record CommandPrompterConfig(
                 "increase the value of this delay.",
                 "Note that 20 ticks is 1 second."
         })
-        int modificationDelay,
+        public
+        int modificationDelay;
 
         @ConfigNode
         @NodeName("Show-Complete-Command")
@@ -113,7 +121,8 @@ public record CommandPrompterConfig(
                 "the completed command to the",
                 "player before dispatching it?"
         })
-        boolean showCompleted,
+        public
+        boolean showCompleted;
 
         @ConfigNode
         @NodeName("Fancy-Logger")
@@ -123,7 +132,8 @@ public record CommandPrompterConfig(
                 "Do /commandprompter reload to",
                 "apply the change"
         })
-        boolean fancyLogger,
+        public
+        boolean fancyLogger;
 
         @ConfigNode
         @NodeName("Ignored-Commands")
@@ -139,7 +149,8 @@ public record CommandPrompterConfig(
                 "",
                 "VentureChat channels are automatically ignored."
         })
-        List<String> ignoredCommands,
+        public
+        List<String> ignoredCommands;
 
         @ConfigNode
         @NodeName("Permission-Attachment.ticks")
@@ -156,11 +167,12 @@ public record CommandPrompterConfig(
                 "permissions - permissions to temporarily",
                 "              attach to the players."
         })
-        int permissionAttachmentTicks,
+        public
+        int permissionAttachmentTicks;
 
         @ConfigNode
         @NodeName("Permission-Attachment.permissions")
         @NodeDefault("sample.permission, sample.permission2")
-        List<String> attachmentPermissions
-) {
+        public
+        List<String> attachmentPermissions;
 }

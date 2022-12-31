@@ -34,11 +34,13 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class AnvilPrompt extends AbstractPrompt {
 
@@ -49,23 +51,23 @@ public class AnvilPrompt extends AbstractPrompt {
     @Override
     public void sendPrompt() {
         List<String> parts = Arrays.asList(getPrompt().split("\\{br}"));
-        var item = makeItem(parts);
+        ItemStack item = makeItem(parts);
         makeAnvil(parts, item).open((Player) getContext().getSender());
     }
 
     private AnvilGUI.Builder makeAnvil(List<String> parts, ItemStack item) {
-        var isComplete = new AtomicBoolean(false);
-        var builder = new AnvilGUI.Builder();
+        AtomicBoolean isComplete = new AtomicBoolean(false);
+        AnvilGUI.Builder builder = new AnvilGUI.Builder();
         builder.onComplete((p, text) -> {
-            var message = ChatColor.stripColor(
+            String message = ChatColor.stripColor(
                     ChatColor.translateAlternateColorCodes('&', text));
-            var cancelKeyword = getPlugin().getConfiguration().cancelKeyword();
+            String cancelKeyword = getPlugin().getConfiguration().cancelKeyword;
             if (cancelKeyword.equalsIgnoreCase(message)) {
                 getPromptManager().cancel(p);
                 return AnvilGUI.Response.close();
             }
             isComplete.getAndSet(true);
-            var ctx = new PromptContext(null, p, message);
+            PromptContext ctx = new PromptContext(null, p, message);
             getPromptManager().processPrompt(ctx);
             return AnvilGUI.Response.close();
         });
@@ -75,8 +77,8 @@ public class AnvilPrompt extends AbstractPrompt {
             getPromptManager().cancel(p);
         });
         builder.text(color(parts.get(0)));
-        if (getPlugin().getPromptConfig().enableTitle()){
-            var title = getPlugin().getPromptConfig().customTitle();
+        if (getPlugin().getPromptConfig().enableTitle) {
+            String title = getPlugin().getPromptConfig().customTitle;
             title = title.isEmpty()?color(parts.get(0)) : color(title);
             builder.title(title);
         }
@@ -86,10 +88,10 @@ public class AnvilPrompt extends AbstractPrompt {
     }
 
     private ItemStack makeItem(List<String> parts) {
-        var item = new ItemStack(Util.getCheckedMaterial(getPlugin().getPromptConfig().anvilItem(), Material.PAPER));
-        var meta = item.getItemMeta();
+        ItemStack item = new ItemStack(Util.getCheckedMaterial(getPlugin().getPromptConfig().anvilItem, Material.PAPER));
+        ItemMeta meta = item.getItemMeta();
         getPlugin().getPluginLogger().debug("ItemMeta: " + meta);
-        if (getPlugin().getPromptConfig().anvilEnchanted()) {
+        if (getPlugin().getPromptConfig().anvilEnchanted) {
             Objects.requireNonNull(meta).addEnchant(Enchantment.LURE, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
@@ -97,7 +99,7 @@ public class AnvilPrompt extends AbstractPrompt {
         meta.setDisplayName(parts.get(0));
 
         if (parts.size() > 1)
-            meta.setLore(parts.subList(1, parts.size()).stream().map(this::color).toList());
+            meta.setLore(parts.subList(1, parts.size()).stream().map(this::color).collect(Collectors.toList()));
         item.setItemMeta(meta);
         return item;
     }

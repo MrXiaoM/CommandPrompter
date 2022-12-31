@@ -1,7 +1,7 @@
 package com.cyr1en.commandprompter.unsafe;
 
-import sun.misc.Unsafe;
-
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 
 /**
@@ -10,10 +10,6 @@ import java.util.Objects;
  * WARNING: Use this class with caution. Only use it for cases that justifies unsafe operations.
  * First, check if there's another way to accomplish
  *
- * <p>
- * This class uses Sun's {@link Unsafe Unsafe} class to put a new {@link Object object}
- * on an {@link Object object's} private final encapsulated field.
- * <p>
  * Usage:
  * <pre>{@code
  *     // let's say there's a private final field named "targetField" in instanceOfTarget
@@ -26,36 +22,21 @@ import java.util.Objects;
  * }</pre>
  */
 public class PvtFieldMutator {
-
-    private final Unsafe unsafe;
     private String targetName;
     private Object targetInstance;
 
-    /**
-     * PvtFieldMutator default constructor.
-     *
-     * <p>
-     * Using classes in {@link java.lang.reflect reflect}, initialize the {@link Unsafe unsafe}
-     * instance variable.
-     *
-     * @throws NoSuchFieldException   when the private field "theUnsafe" is not found.
-     * @throws IllegalAccessException when access to the field "theUnsafe" is prevented.
-     */
-    public PvtFieldMutator() throws NoSuchFieldException, IllegalAccessException {
-        var unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
-        unsafeField.setAccessible(true);
-        this.unsafe = (Unsafe) unsafeField.get(null);
+    private PvtFieldMutator() {
     }
-
     /**
      * Function that defines the name of the target.
      *
      * @param targetFieldName name of the target field.
      * @return instance of this class.
      */
-    public PvtFieldMutator forField(String targetFieldName) {
-        this.targetName = targetFieldName;
-        return this;
+    public static PvtFieldMutator forField(String targetFieldName) {
+        PvtFieldMutator mutator = new PvtFieldMutator();
+        mutator.targetName = targetFieldName;
+        return mutator;
     }
 
     /**
@@ -79,13 +60,20 @@ public class PvtFieldMutator {
      */
     public void replaceWith(Object newObject) throws NoSuchFieldException, IllegalStateException, IllegalAccessException {
         assertTargetNotNull();
-        var targetField = targetInstance.getClass().getDeclaredField(targetName);
-        var targetFieldOffset = unsafe.objectFieldOffset(targetField);
-        unsafe.putObject(targetInstance, targetFieldOffset, newObject);
-
-        // Assert that we actually have it done correctly.
+        Field targetField = targetInstance.getClass().getDeclaredField(targetName);
         targetField.setAccessible(true);
-        var newFieldObject = targetField.get(targetInstance);
+
+        // Remove FINAL modifier
+        int mod = targetField.getModifiers();
+        if (Modifier.isFinal(mod)) {
+            Field modifiers = targetField.getClass().getDeclaredField("modifiers");
+            modifiers.setAccessible(true);
+            modifiers.set(targetField, mod & ~Modifier.FINAL);
+        }
+
+        targetField.set(targetInstance, newObject);
+
+        Object newFieldObject = targetField.get(targetInstance);
 
         if(Objects.isNull(newObject)) {
             if(!Objects.isNull(newFieldObject))
@@ -110,17 +98,17 @@ public class PvtFieldMutator {
      */
     public String getClassName() throws NoSuchFieldException, IllegalAccessException {
         assertTargetNotNull();
-        var targetField = targetInstance.getClass().getDeclaredField(targetName);
+        Field targetField = targetInstance.getClass().getDeclaredField(targetName);
         targetField.setAccessible(true);
-        var ob = targetField.get(targetInstance);
+        Object ob = targetField.get(targetInstance);
         return ob.getClass().getCanonicalName();
     }
 
     public int getHashCode() throws NoSuchFieldException, IllegalAccessException {
         assertTargetNotNull();
-        var targetField = targetInstance.getClass().getDeclaredField(targetName);
+        Field targetField = targetInstance.getClass().getDeclaredField(targetName);
         targetField.setAccessible(true);
-        var ob = targetField.get(targetInstance);
+        Object ob = targetField.get(targetInstance);
         return ob.hashCode();
     }
 

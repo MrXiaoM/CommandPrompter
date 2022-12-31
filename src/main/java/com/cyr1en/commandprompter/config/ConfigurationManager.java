@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class that manages your plugin's configuration(s)
@@ -44,33 +45,32 @@ public class ConfigurationManager {
         if (configClass.getAnnotation(Configuration.class) == null)
             return null;
 
-        var config = initConfigFile(configClass);
+        Config config = initConfigFile(configClass);
 
         initializeConfig(configClass, config);
 
-        var configValues = new ArrayList<>();
-        configValues.add(config);
-
-        for (Field declaredField : configClass.getDeclaredFields()) {
-            if (declaredField.getAnnotation(ConfigNode.class) == null) continue;
-
-            var nameAnnotation = declaredField.getAnnotation(NodeName.class);
-            if (declaredField.getType().equals(int.class))
-                configValues.add(config.getInt(nameAnnotation.value()));
-            else if (declaredField.getType().equals(boolean.class))
-                configValues.add(config.getBoolean(nameAnnotation.value()));
-            else if (declaredField.getType().equals(double.class))
-                configValues.add(config.getDouble(nameAnnotation.value()));
-            else if (declaredField.getType().equals(List.class))
-                configValues.add(config.getList(nameAnnotation.value()));
-            else configValues.add(config.getString(nameAnnotation.value()));
-        }
         try {
-            // Records only have 1 constructor so just access index 0
-            var recordConfig = configClass.getDeclaredConstructors()[0].newInstance(configValues.toArray());
-            @SuppressWarnings("unchecked") var out = (T) recordConfig;
+            Object recordConfig = configClass.getDeclaredConstructors()[0].newInstance();
+            @SuppressWarnings("unchecked") T out = (T) recordConfig;
+            configClass.getDeclaredField("rawConfig").set(out, config);
+            for (Field declaredField : configClass.getDeclaredFields()) {
+                if (declaredField.getAnnotation(ConfigNode.class) == null) continue;
+                Object value;
+                NodeName nameAnnotation = declaredField.getAnnotation(NodeName.class);
+                if (declaredField.getType().equals(int.class))
+                    value = config.getInt(nameAnnotation.value());
+                else if (declaredField.getType().equals(boolean.class))
+                    value = config.getBoolean(nameAnnotation.value());
+                else if (declaredField.getType().equals(double.class))
+                    value = config.getDouble(nameAnnotation.value());
+                else if (declaredField.getType().equals(List.class))
+                    value = config.getList(nameAnnotation.value());
+                else value = config.getString(nameAnnotation.value());
+                declaredField.set(out, value);
+            }
+
             return out;
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return null;
@@ -81,17 +81,17 @@ public class ConfigurationManager {
     }
 
     private void initializeConfig(Class<?> configClass, Config config) {
-        var fields = configClass.getDeclaredFields();
+        Field[] fields = configClass.getDeclaredFields();
         for (Field field : fields)
             initializeField(field, config);
     }
 
     private Config initConfigFile(Class<?> configClass) {
-        var pathAnnotation = configClass.getAnnotation(ConfigPath.class);
-        var filePath = pathAnnotation == null ? configClass.getSimpleName() : pathAnnotation.value();
+        ConfigPath pathAnnotation = configClass.getAnnotation(ConfigPath.class);
+        String filePath = pathAnnotation == null ? configClass.getSimpleName() : pathAnnotation.value();
 
-        var headerAnnotation = configClass.getAnnotation(ConfigHeader.class);
-        var header = headerAnnotation == null ? new String[]{configClass.getSimpleName(), "Configuration"} :
+        ConfigHeader headerAnnotation = configClass.getAnnotation(ConfigHeader.class);
+        String[] header = headerAnnotation == null ? new String[] { configClass.getSimpleName(), "Configuration"} :
                 headerAnnotation.value();
         return configManager.getNewConfig(filePath, header);
     }
@@ -99,14 +99,14 @@ public class ConfigurationManager {
     private void initializeField(Field field, Config config) {
         if (field.getAnnotation(ConfigNode.class) == null) return;
 
-        var nameAnnotation = field.getAnnotation(NodeName.class);
-        var nodeName = nameAnnotation == null ? field.getName() : nameAnnotation.value();
+        NodeName nameAnnotation = field.getAnnotation(NodeName.class);
+        String nodeName = nameAnnotation == null ? field.getName() : nameAnnotation.value();
 
-        var defaultAnnotation = field.getAnnotation(NodeDefault.class);
-        var nodeDefault = defaultAnnotation == null ? constructDefaultField(field) : parseDefault(field);
+        NodeDefault defaultAnnotation = field.getAnnotation(NodeDefault.class);
+        Object nodeDefault = defaultAnnotation == null ? constructDefaultField(field) : parseDefault(field);
 
-        var commentAnnotation = field.getAnnotation(NodeComment.class);
-        var nodeComment = commentAnnotation == null ? new String[]{} : commentAnnotation.value();
+        NodeComment commentAnnotation = field.getAnnotation(NodeComment.class);
+        String[] nodeComment = commentAnnotation == null ? new String[]{} : commentAnnotation.value();
 
         if (config.get(nodeName) != null) return;
         config.set(nodeName, nodeDefault, nodeComment);
@@ -134,7 +134,7 @@ public class ConfigurationManager {
     }
 
     private Object parseDefault(Field field) {
-        var defaultAnnotation = field.getAnnotation(NodeDefault.class);
+        NodeDefault defaultAnnotation = field.getAnnotation(NodeDefault.class);
         if (field.getType().equals(int.class))
             return Integer.valueOf(defaultAnnotation.value());
         if (field.getType().equals(boolean.class))
@@ -142,7 +142,7 @@ public class ConfigurationManager {
         if (field.getType().equals(double.class))
             return Double.valueOf(defaultAnnotation.value());
         if (field.getType().equals(List.class))
-            return Arrays.stream(defaultAnnotation.value().split(",\\s+")).toList();
+            return Arrays.stream(defaultAnnotation.value().split(",\\s+")).collect(Collectors.toList());
         return defaultAnnotation.value();
     }
 }

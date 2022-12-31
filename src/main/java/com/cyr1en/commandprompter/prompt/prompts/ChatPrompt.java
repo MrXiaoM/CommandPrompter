@@ -26,6 +26,7 @@ package com.cyr1en.commandprompter.prompt.prompts;
 
 import com.cyr1en.commandprompter.CommandPrompter;
 import com.cyr1en.commandprompter.prompt.PromptContext;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -33,6 +34,7 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChatPrompt extends AbstractPrompt {
 
@@ -41,10 +43,10 @@ public class ChatPrompt extends AbstractPrompt {
     }
 
     public void sendPrompt() {
-        List<String> parts = Arrays.stream(getPrompt().split("\\{br}")).map(String::trim).toList();
-        String prefix = getPlugin().getConfiguration().promptPrefix();
+        List<String> parts = Arrays.stream(getPrompt().split("\\{br}")).map(String::trim).collect(Collectors.toList());
+        String prefix = getPlugin().getConfiguration().promptPrefix;
         parts.forEach(part -> getContext().getSender().sendMessage(color(prefix + part)));
-        var isSendCancel = getPlugin().getPromptConfig().sendCancelText();
+        boolean isSendCancel = getPlugin().getPromptConfig().sendCancelText;
         getPlugin().getPluginLogger().debug("Send Cancel: " + isSendCancel);
         if (isSendCancel)
             sendCancelText();
@@ -52,12 +54,11 @@ public class ChatPrompt extends AbstractPrompt {
 
     private void sendCancelText() {
         try {
-            if (Class.forName("org.spigotmc.SpigotConfig") == null)
-                return;
-            var cancelMessage = getPlugin().getPromptConfig().textCancelMessage();
-            var hoverMessage = getPlugin().getPromptConfig().textCancelHoverMessage();
-            String prefix = getPlugin().getConfiguration().promptPrefix();
-            var component = new ComponentBuilder(color(prefix + cancelMessage))
+            Class.forName("org.spigotmc.SpigotConfig");
+            String cancelMessage = getPlugin().getPromptConfig().textCancelMessage;
+            String hoverMessage = getPlugin().getPromptConfig().textCancelHoverMessage;
+            String prefix = getPlugin().getConfiguration().promptPrefix;
+            BaseComponent[] component = new ComponentBuilder(color(prefix + cancelMessage))
                     .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/commandprompter cancel"))
                     .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(color(hoverMessage))))
                     .create();

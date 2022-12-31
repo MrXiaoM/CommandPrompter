@@ -25,9 +25,11 @@
 package com.cyr1en.commandprompter.api;
 
 import com.cyr1en.commandprompter.CommandPrompter;
+import com.cyr1en.commandprompter.PluginLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -86,11 +88,11 @@ public class Dispatcher {
      */
     public static void dispatchWithAttachment
             (Plugin plugin, Player sender, String command, int ticks, @NotNull String[] perms) {
-        var commandPrompter = (CommandPrompter) plugin;
-        var logger = commandPrompter.getPluginLogger();
+        CommandPrompter commandPrompter = (CommandPrompter) plugin;
+        PluginLogger logger = commandPrompter.getPluginLogger();
 
         logger.debug("Dispatching command with permission attachment");
-        var attachment = sender.addAttachment(plugin, ticks);
+        PermissionAttachment attachment = sender.addAttachment(plugin, ticks);
         if (attachment == null) {
             logger.err("Unable to create PermissionAttachment for " + sender.getName());
             return;

@@ -16,8 +16,8 @@ public class PluginMessenger {
     }
 
     public void sendMessage(CommandSender sender, String message) {
-        if (message.isBlank()) return;
-        var whole = prefix + message;
+        if (message.trim().isEmpty()) return;
+        String whole = prefix + message;
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', whole));
     }
 }

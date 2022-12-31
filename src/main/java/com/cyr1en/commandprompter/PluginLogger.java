@@ -11,20 +11,17 @@ import java.util.logging.Level;
 public class PluginLogger {
 
     private String prefix;
-    private String plainPrefix;
     private String debugPrefix;
 
     private final ColorGradient normalGrad;
     private final ColorGradient debugGrad;
 
-    private boolean debugMode = false;
-    private boolean isFancy = true;
-    private CommandPrompter plugin;
+    private boolean debugMode;
+    private boolean isFancy;
 
     public PluginLogger(CommandPrompter plugin, String prefix) {
-        this.plugin = plugin;
-        this.isFancy = plugin.getConfiguration().fancyLogger();
-        this.debugMode = plugin.getConfiguration().debugMode();
+        this.isFancy = plugin.getConfiguration().fancyLogger;
+        this.debugMode = plugin.getConfiguration().debugMode;
         AnsiConsole.systemInstall();
 
         // Spread love not war <3
@@ -41,17 +38,16 @@ public class PluginLogger {
     }
 
     public void setPrefix(String prefix) {
-        this.plainPrefix = prefix;
-        var sep = isFancy ? new Ansi().fgRgb(153, 214, 90).a(">>").reset().toString() : ">>";
-        var normal = isFancy ? makeGradient(prefix, normalGrad) : prefix;
-        var debug = isFancy ? makeGradient(prefix + "-" + "Debug", debugGrad) : prefix + "-" + "Debug";
+        String sep = isFancy ? new Ansi().fgRgb(153, 214, 90).a(">>").reset().toString() : ">>";
+        String normal = isFancy ? makeGradient(prefix, normalGrad) : prefix;
+        String debug = isFancy ? makeGradient(prefix + "-" + "Debug", debugGrad) : prefix + "-" + "Debug";
         this.prefix = String.format("%s %s ", normal, sep);
         this.debugPrefix = String.format("%s %s ", debug, sep);
     }
 
     private String makeGradient(String prefix, ColorGradient grad) {
-        var colorGrad = grad.getGradient(prefix.length());
-        var a = new Ansi();
+        Color[] colorGrad = grad.getGradient(prefix.length());
+        Ansi a = new Ansi();
         for (int i = 0; i < colorGrad.length; i++)
             a.fgRgb(colorGrad[i].getRGB()).a(prefix.charAt(i));
 
@@ -74,18 +70,18 @@ public class PluginLogger {
     }
 
     public void warn(String msg, Object... args) {
-        var str = new Ansi().fgRgb(255, 195, 113).a(msg).reset().toString();
+        String str = new Ansi().fgRgb(255, 195, 113).a(msg).reset().toString();
         log(Level.WARNING, str, args);
     }
 
     public void err(String msg, Object... args) {
-        var str = new Ansi().fgRgb(255, 50, 21).a(msg).reset().toString();
+        String str = new Ansi().fgRgb(255, 50, 21).a(msg).reset().toString();
         log(Level.SEVERE, str, args);
     }
 
     public void debug(String msg, Object... args) {
         if (debugMode) {
-            var str = new Ansi().fgRgb(255, 195, 113).a(msg).reset().toString();
+            String str = new Ansi().fgRgb(255, 195, 113).a(msg).reset().toString();
             log(debugPrefix, Level.INFO, str, args);
         }
     }
@@ -102,12 +98,19 @@ public class PluginLogger {
         return prefix;
     }
 
-    public record ColorGradient(Color c1, Color c2) {
+    public static class ColorGradient {
+        Color c1;
+        Color c2;
+
+        public ColorGradient(Color c1, Color c2) {
+            this.c1 = c1;
+            this.c2 = c2;
+        }
 
         public Color[] getGradient(int segmentCount) {
-            var colors = new Color[segmentCount];
-            var seg = 1.0F / segmentCount;
-            var currSeg = 0.0F;
+            Color[] colors = new Color[segmentCount];
+            float seg = 1.0F / segmentCount;
+            float currSeg = 0.0F;
             for (int i = 0; i < segmentCount; i++) {
                 colors[i] = getPercentGradient(currSeg);
                 currSeg += seg;
@@ -125,7 +128,7 @@ public class PluginLogger {
         }
 
         private int linInterpolate(int f1, int f2, float percent) {
-            var res = f1 + percent * (f2 - f1);
+            float res = f1 + percent * (f2 - f1);
             return Math.round(res);
         }
 

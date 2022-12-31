@@ -19,7 +19,7 @@ public class PuerkasChatHook implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onChat(PuerkasChatEvent event) {
         plugin.getPluginLogger().debug("PuerkasChatEvent Listener Invoked");
-        var responseHandler = new PromptResponseListener.ResponseHandler(this.plugin);
+        PromptResponseListener.ResponseHandler responseHandler = new PromptResponseListener.ResponseHandler(this.plugin);
         responseHandler.onResponse(event.getPlayer(), event.getChatMessage(), event);
     }
 }

@@ -12,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @TargetPlugin(pluginName = "SuperVanish")
 public class SuperVanishHook extends BaseHook implements Listener {
@@ -30,12 +31,12 @@ public class SuperVanishHook extends BaseHook implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onVisibilityStateChange(PlayerVanishStateChangeEvent e) {
         getPlugin().getPluginLogger().debug("Pre Vanish State Change: " + headCache.getHeads().stream().map(i ->
-                Objects.requireNonNull(i.getItemMeta()).getDisplayName()).toList());
+                Objects.requireNonNull(i.getItemMeta()).getDisplayName()).collect(Collectors.toList()));
         if (e.isVanishing())
             headCache.invalidate(Bukkit.getPlayer(e.getUUID()));
         else
             headCache.getHeadFor(Objects.requireNonNull(Bukkit.getPlayer(e.getUUID())));
         getPlugin().getPluginLogger().debug("Post Vanish State Change: " + headCache.getHeads().stream().map(i ->
-                Objects.requireNonNull(i.getItemMeta()).getDisplayName()).toList());
+                Objects.requireNonNull(i.getItemMeta()).getDisplayName()).collect(Collectors.toList()));
     }
 }

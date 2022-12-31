@@ -35,7 +35,7 @@ public class PromptQueue extends LinkedList<Prompt> {
     }
 
     public String getCompleteCommand() {
-        command = command.formatted(completed);
+        command = String.format(command, completed);
         while (!completed.isEmpty())
             command = command.replaceFirst(escapedRegex, completed.pollFirst());
         return "/" + command;

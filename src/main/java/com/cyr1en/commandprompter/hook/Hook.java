@@ -25,7 +25,7 @@ public final class Hook<T> {
     }
 
     public static <T> Hook<T> empty() {
-        @SuppressWarnings("unchecked") var t = (Hook<T>) EMPTY;
+        @SuppressWarnings("unchecked") Hook<T> t = (Hook<T>) EMPTY;
         return t;
     }
 

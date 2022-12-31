@@ -79,7 +79,7 @@ public class CommandPrompter extends JavaPlugin {
         setupUpdater();
         setupCommands();
         initPromptSystem();
-        messenger = new PluginMessenger(config.promptPrefix());
+        messenger = new PluginMessenger(config.promptPrefix);
         instance = this;
         Bukkit.getPluginManager().registerEvents(hookContainer = new HookContainer(this), this);
     }
@@ -107,29 +107,28 @@ public class CommandPrompter extends JavaPlugin {
      * command map. Otherwise, it will just use the vanilla listener.
      */
     private void initCommandListener() {
-        var useUnsafe = config.enableUnsafe();
+        boolean useUnsafe = config.enableUnsafe;
         if (!useUnsafe) {
             commandListener = new VanillaListener(promptManager);
             Bukkit.getPluginManager().registerEvents(commandListener, this);
             return;
         }
-        var delay = (long) config.modificationDelay();
+        long delay = config.modificationDelay;
         Bukkit.getScheduler().runTaskLater(this, this::hackMap, delay);
     }
 
     private void hackMap() {
         try {
-            var mapHacker = new CommandMapHacker(this);
+            CommandMapHacker mapHacker = new CommandMapHacker(this);
 
-            var newCommandMap = new ModifiedCommandMap(getServer(), this);
+            ModifiedCommandMap newCommandMap = new ModifiedCommandMap(getServer(), this);
             mapHacker.hackCommandMapIn(getServer(), newCommandMap);
             mapHacker.hackCommandMapIn(getServer().getPluginManager(), newCommandMap);
 
             commandListener = new ModifiedListener(promptManager);
 
-            var mutator = new PvtFieldMutator();
-            var sHash = mutator.forField("commandMap").in(getServer()).getHashCode();
-            var pHash = mutator.forField("commandMap").in(getServer().getPluginManager()).getHashCode();
+            int sHash = PvtFieldMutator.forField("commandMap").in(getServer()).getHashCode();
+            int pHash = PvtFieldMutator.forField("commandMap").in(getServer().getPluginManager()).getHashCode();
             logger.warn("sHash: " + sHash + " | pHash: " + pHash);
             Bukkit.getPluginManager().registerEvents(commandListener, this);
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -154,7 +153,7 @@ public class CommandPrompter extends JavaPlugin {
     }
 
     private void setupCommandManager() {
-        var cmgBuilder = new CommandManager.Builder();
+        CommandManager.Builder cmgBuilder = new CommandManager.Builder();
         cmgBuilder.plugin(this);
         cmgBuilder.setPrefix(getConfig().getString("Prompt-Prefix"));
         cmgBuilder.setPlayerOnlyMessage(getI18N().getProperty("CommandPlayerOnly"));
@@ -215,10 +214,10 @@ public class CommandPrompter extends JavaPlugin {
     public void reload(boolean clean) {
         config = configManager.reload(CommandPrompterConfig.class);
         promptConfig = configManager.reload(PromptConfig.class);
-        messenger.setPrefix(config.promptPrefix());
+        messenger.setPrefix(config.promptPrefix);
         logger = new PluginLogger(this, "CommandPrompter");
         i18n = new I18N(this, "CommandPrompter");
-        commandManager.getMessenger().setPrefix(config.promptPrefix());
+        commandManager.getMessenger().setPrefix(config.promptPrefix);
         promptManager.getParser().initRegex();
         PromptResponseListener.setPriority(this);
         setupUpdater();

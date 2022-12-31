@@ -1,21 +1,23 @@
 package com.cyr1en.commandprompter.prompt;
 
 import com.cyr1en.commandprompter.CommandPrompter;
+import com.cyr1en.commandprompter.PluginLogger;
 import com.cyr1en.commandprompter.hook.hooks.PuerkasChatHook;
 import com.cyr1en.commandprompter.unsafe.PvtFieldMutator;
 import es.capitanpuerka.puerkaschat.manager.PuerkasFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.RegisteredListener;
 import org.fusesource.jansi.Ansi;
 
-import java.util.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class PromptResponseListener implements Listener {
@@ -36,7 +38,7 @@ public class PromptResponseListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent event) {
-        var isPuerkasChatHooked = plugin.getHookContainer().getHook(PuerkasChatHook.class).isHooked();
+        boolean isPuerkasChatHooked = plugin.getHookContainer().getHook(PuerkasChatHook.class).isHooked();
         if (!isPuerkasChatHooked) {
             handler.onResponse(event.getPlayer(), event.getMessage(), event);
         } else if ((PuerkasFormat.getFormats() != null && !PuerkasFormat.getFormats().isEmpty()))
@@ -57,27 +59,27 @@ public class PromptResponseListener implements Listener {
             if (!manager.getPromptRegistry().inCommandProcess(player))
                 return;
             event.setCancelled(true);
-            var message = ChatColor.stripColor(
+            String message = ChatColor.stripColor(
                     ChatColor.translateAlternateColorCodes('&', msg));
-            var cancelKeyword = plugin.getConfiguration().cancelKeyword();
+            String cancelKeyword = plugin.getConfiguration().cancelKeyword;
 
             if (cancelKeyword.equalsIgnoreCase(message))
                 manager.cancel(player);
-            var ctx = new PromptContext(event, player, message);
+            PromptContext ctx = new PromptContext(event, player, message);
             Bukkit.getScheduler().runTask(plugin, () -> manager.processPrompt(ctx));
         }
     }
 
     public static void setPriority(CommandPrompter plugin) {
-        var configPriority = plugin.getPromptConfig().responseListenerPriority().toUpperCase(Locale.ROOT);
+        String configPriority = plugin.getPromptConfig().responseListenerPriority.toUpperCase(Locale.ROOT);
         if (configPriority.equals("DEFAULT")) return;
 
         listAllRegisteredListeners(plugin);
-        var logger = plugin.getPluginLogger();
-        var currentPriority = getCurrentEventPriority(plugin);
+        PluginLogger logger = plugin.getPluginLogger();
+        EventPriority currentPriority = getCurrentEventPriority(plugin);
         if (Objects.isNull(currentPriority)) return;
 
-        var priority = EventPriority.LOWEST;
+        EventPriority priority = EventPriority.LOWEST;
         try {
             priority = EventPriority.valueOf(configPriority);
         } catch (IllegalArgumentException ignore) {
@@ -91,25 +93,26 @@ public class PromptResponseListener implements Listener {
     }
 
     private static synchronized void setPriority(CommandPrompter plugin, EventPriority newPriority) {
-        var logger = plugin.getPluginLogger();
+        PluginLogger logger = plugin.getPluginLogger();
+        EventPriority oldPriority = getCurrentEventPriority(plugin);
         logger.debug("Setting PromptResponseListener priority from '%s' to '%s'",
-                getCurrentEventPriority(plugin).name(), newPriority.name());
-        var handlerList = AsyncPlayerChatEvent.getHandlerList();
+                oldPriority == null ? "null" : oldPriority.name(), newPriority.name());
+        HandlerList handlerList = AsyncPlayerChatEvent.getHandlerList();
         try {
-            var handlerSlotsF = handlerList.getClass().getDeclaredField("handlerslots");
+            Field handlerSlotsF = handlerList.getClass().getDeclaredField("handlerslots");
             handlerSlotsF.setAccessible(true);
             @SuppressWarnings("unchecked")
-            var handlerSlots = (EnumMap<EventPriority, ArrayList<RegisteredListener>>) handlerSlotsF.get(handlerList);
-            var currentPriority = getCurrentEventPriority(plugin);
+            EnumMap<EventPriority, ArrayList<RegisteredListener>> handlerSlots = (EnumMap<EventPriority, ArrayList<RegisteredListener>>) handlerSlotsF.get(handlerList);
+            EventPriority currentPriority = getCurrentEventPriority(plugin);
 
-            var registeredListener = handlerSlots.get(currentPriority).stream()
+            RegisteredListener registeredListener = handlerSlots.get(currentPriority).stream()
                     .filter(rL -> rL.getListener().getClass().equals(PromptResponseListener.class))
-                    .findFirst().orElseThrow();
+                    .findFirst().orElse(null);
+            if (registeredListener == null) throw new NullPointerException();
 
             handlerList.unregister(registeredListener);
 
-            var mutator = new PvtFieldMutator();
-            mutator.forField("priority").in(registeredListener).replaceWith(newPriority);
+            PvtFieldMutator.forField("priority").in(registeredListener).replaceWith(newPriority);
 
             handlerList.register(registeredListener);
             handlerList.bake();
@@ -117,8 +120,9 @@ public class PromptResponseListener implements Listener {
             throw new RuntimeException(e);
         }
 
+        EventPriority priority = getCurrentEventPriority(plugin);
         logger.info("PromptResponsePriority is now '%s'",
-                new Ansi().fgRgb(153, 214, 90).a(getCurrentEventPriority(plugin).name()));
+                new Ansi().fgRgb(153, 214, 90).a(priority == null ? "null" : priority.name()));
         listAllRegisteredListeners(plugin);
     }
 
@@ -131,7 +135,7 @@ public class PromptResponseListener implements Listener {
     }
 
     private static void listAllRegisteredListeners(CommandPrompter plugin) {
-        var logger = plugin.getPluginLogger();
+        PluginLogger logger = plugin.getPluginLogger();
         logger.debug("Registered Listeners: ");
         for (RegisteredListener registeredListener : AsyncPlayerChatEvent.getHandlerList().getRegisteredListeners()) {
             logger.debug("  - '%s'", registeredListener.getListener().getClass().getSimpleName());

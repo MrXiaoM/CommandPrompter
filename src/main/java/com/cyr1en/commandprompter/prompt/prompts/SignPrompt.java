@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SignPrompt extends AbstractPrompt {
 
@@ -35,7 +36,7 @@ public class SignPrompt extends AbstractPrompt {
             parts = parts.subList(0, 3);
 
         List<String> finalParts = parts;
-        var menu = signMenuFactory.newMenu(parts)
+        SignMenuFactory.Menu menu = signMenuFactory.newMenu(parts)
                 .response((p, s) -> process(finalParts, p, s));
         Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
             menu.open((Player) getContext().getSender());
@@ -53,31 +54,31 @@ public class SignPrompt extends AbstractPrompt {
     }
 
     private boolean process(List<String> parts, Player p, String[] s) {
-        var cleanedParts = parts.stream().map(this::stripColor).toList();
+        List<String> cleanedParts = parts.stream().map(this::stripColor).collect(Collectors.toList());
         getPlugin().getPluginLogger().debug("Sign Strings: " + Arrays.toString(s));
 
-        var response = isMultiArg ?
-                FastStrings.join(Arrays.stream(s).filter(str -> !str.isBlank() && !cleanedParts.contains(str))
+        String response = isMultiArg ?
+                FastStrings.join(Arrays.stream(s).filter(str -> !str.trim().isEmpty() && !cleanedParts.contains(str))
                         .filter(str -> str.matches(MULTI_ARG_PATTERN_FILLED))
                         .map(str -> str.replaceAll(MULTI_ARG_PATTERN_EMPTY, "").trim()).toArray(), " ") :
                 FastStrings.join(Arrays.stream(s)
-                        .filter(str -> !cleanedParts.contains(str) && !str.isBlank()).toArray(), " ");
+                        .filter(str -> !cleanedParts.contains(str) && !str.trim().isEmpty()).toArray(), " ");
 
         getPlugin().getPluginLogger().debug("Response: " + response);
 
         // If the sign contains the same message as the prompt
         // we'll consider the command completion cancelled.
-        if (response.isBlank()) {
+        if (response.trim().isEmpty()) {
             getPromptManager().cancel(p);
             return true;
         }
 
-        var cancelKeyword = getPlugin().getConfiguration().cancelKeyword();
+        String  cancelKeyword = getPlugin().getConfiguration().cancelKeyword;
         if (cancelKeyword.equalsIgnoreCase(response)) {
             getPromptManager().cancel(p);
             return true;
         }
-        var ctx = new PromptContext(null, p, response);
+        PromptContext ctx = new PromptContext(null, p, response);
 
         getPromptManager().processPrompt(ctx);
 

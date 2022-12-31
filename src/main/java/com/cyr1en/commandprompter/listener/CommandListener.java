@@ -26,6 +26,7 @@ package com.cyr1en.commandprompter.listener;
 
 import com.cyr1en.commandprompter.CommandPrompter;
 import com.cyr1en.commandprompter.commands.Cancel;
+import com.cyr1en.commandprompter.hook.Hook;
 import com.cyr1en.commandprompter.hook.hooks.VentureChatHook;
 import com.cyr1en.commandprompter.prompt.PromptContext;
 import com.cyr1en.commandprompter.prompt.PromptManager;
@@ -33,6 +34,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CommandListener implements Listener {
@@ -60,7 +62,7 @@ public class CommandListener implements Listener {
             return;
 
         if (!context.getSender().hasPermission("commandprompter.use") &&
-                plugin.getConfiguration().enablePermission()) {
+                plugin.getConfiguration().enablePermission) {
             plugin.getMessenger().sendMessage(context.getSender(),
                     plugin.getI18N().getProperty("PromptNoPerm"));
             return;
@@ -68,7 +70,7 @@ public class CommandListener implements Listener {
         if (promptManager.getPromptRegistry().inCommandProcess(context.getSender())) {
             plugin.getMessenger().sendMessage(context.getSender(),
                     plugin.getI18N().getFormattedProperty("PromptInProgress",
-                            plugin.getConfiguration().cancelKeyword()));
+                            plugin.getConfiguration().cancelKeyword));
             context.getCancellable().setCancelled(true);
             return;
         }
@@ -87,15 +89,15 @@ public class CommandListener implements Listener {
     }
 
     private boolean isIgnored(PromptContext context) {
-        var end = context.getContent().indexOf(" ");
+        int end = context.getContent().indexOf(" ");
         end = end == -1 ? context.getContent().length() : end;
-        var cmd = context.getContent().substring(0, end);
-        return plugin.getConfiguration().ignoredCommands().contains(cmd) || isCmdChatChannel(cmd);
+        String cmd = context.getContent().substring(0, end);
+        return plugin.getConfiguration().ignoredCommands.contains(cmd) || isCmdChatChannel(cmd);
     }
 
     private boolean isCmdChatChannel(String cmd) {
-        var out = new AtomicBoolean(false);
-        var vcHook = plugin.getHookContainer().getHook(VentureChatHook.class);
+        AtomicBoolean out = new AtomicBoolean(false);
+        Hook<VentureChatHook> vcHook = plugin.getHookContainer().getHook(VentureChatHook.class);
         plugin.getPluginLogger().debug("VentureChat hooked: " + vcHook.isHooked());
         vcHook.ifHooked(hook -> out.set(hook.isChatChannel(cmd)));
         plugin.getPluginLogger().debug("is VentureChat channel: " + out.get());
@@ -103,7 +105,7 @@ public class CommandListener implements Listener {
     }
 
     private void parsePermissionAttachment(PromptContext context) {
-        var matcher = permissionAttachmentPattern.matcher(context.getContent());
+        Matcher matcher = permissionAttachmentPattern.matcher(context.getContent());
         if(matcher.find()) {
             context.setContent(matcher.replaceAll(""));
             context.setSetPermissionAttachment(true);

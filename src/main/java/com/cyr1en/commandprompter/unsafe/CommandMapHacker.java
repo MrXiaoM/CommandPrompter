@@ -4,18 +4,15 @@ import com.cyr1en.commandprompter.CommandPrompter;
 import org.bukkit.command.SimpleCommandMap;
 
 public class CommandMapHacker {
-
-    private final PvtFieldMutator mutator;
     private final CommandPrompter plugin;
 
     public CommandMapHacker(CommandPrompter plugin) throws NoSuchFieldException, IllegalAccessException {
-        mutator = new PvtFieldMutator();
         this.plugin = plugin;
         logWarning();
     }
 
     public void hackCommandMapIn(Object object, SimpleCommandMap newMap) throws NoSuchFieldException, IllegalAccessException {
-        mutator.forField("commandMap").in(object).replaceWith(newMap);
+        PvtFieldMutator.forField("commandMap").in(object).replaceWith(newMap);
         plugin.getPluginLogger().warn("Changed command map in '" + object.getClass().getSimpleName() + "' " +
                 "to '" + newMap.getClass().getSimpleName() + "'");
     }

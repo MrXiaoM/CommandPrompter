@@ -37,13 +37,10 @@ public class ModifiedListener extends CommandListener {
         super(manager);
     }
 
-    @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(CommandDispatchEvent event) {
-        if (!(event.getSender() instanceof Player sender))
-            return;
-        PromptContext context = new PromptContext(event, sender, event.getCommandLine());
-        this.process(context);
+        if (!(event.getSender() instanceof Player)) return;
+        this.process(new PromptContext(event, (Player) event.getSender(), event.getCommandLine()));
     }
 
 }

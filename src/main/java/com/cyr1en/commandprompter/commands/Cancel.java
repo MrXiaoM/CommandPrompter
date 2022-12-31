@@ -25,10 +25,10 @@ public class Cancel extends AbstractCommand {
 
     @Override
     public void doCommand(CommandSender commandSender, String[] strings) {
-        var inCommand = commandPrompter.getPromptManager()
+        boolean inCommand = commandPrompter.getPromptManager()
                 .getPromptRegistry().inCommandProcess(commandSender);
         if (!inCommand) {
-            var msg = commandPrompter.getI18N().getProperty("CommandCancelNotInCompletion");
+            String msg = commandPrompter.getI18N().getProperty("CommandCancelNotInCompletion");
             commandPrompter.getMessenger().sendMessage(commandSender, msg);
             return;
         }

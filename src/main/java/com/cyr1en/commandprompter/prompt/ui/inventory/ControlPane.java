@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -32,9 +33,9 @@ public class ControlPane extends StaticPane {
     public ControlPane(CommandPrompter plugin, PaginatedPane pane, ChestGui gui, PromptContext ctx, int numCols) {
         super(0, numCols - 1, 9, 1);
         this.plugin = plugin;
-        prevLoc = plugin.getPromptConfig().previousColumn() - 1;
-        nextLoc = plugin.getPromptConfig().nextColumn() - 1;
-        cancelLoc = plugin.getPromptConfig().cancelColumn() - 1;
+        prevLoc = plugin.getPromptConfig().previousColumn - 1;
+        nextLoc = plugin.getPromptConfig().nextColumn - 1;
+        cancelLoc = plugin.getPromptConfig().cancelColumn - 1;
         this.paginatedPane = pane;
         this.ctx = ctx;
         this.gui = gui;
@@ -51,31 +52,31 @@ public class ControlPane extends StaticPane {
     }
 
     private void setupButtons() {
-        var pages = paginatedPane.getPages() - 1;
+        int pages = paginatedPane.getPages() - 1;
 
-        var prevMatString = plugin.getPromptConfig().previousItem();
-        var prevIS = new ItemStack(Util.getCheckedMaterial(prevMatString, Material.FEATHER));
-        addItem(plugin.getPromptConfig().previousText(), prevIS, prevLoc,
+        String prevMatString = plugin.getPromptConfig().previousItem;
+        ItemStack prevIS = new ItemStack(Util.getCheckedMaterial(prevMatString, Material.FEATHER));
+        addItem(plugin.getPromptConfig().previousText, prevIS, prevLoc,
                 c -> {
                     c.setCancelled(true);
-                    var next = Math.max((paginatedPane.getPage() - 1), 0);
+                    int prev = Math.max((paginatedPane.getPage() - 1), 0);
+                    paginatedPane.setPage(prev);
+                    gui.update();
+                });
+
+        String nextMatString = plugin.getPromptConfig().nextItem;
+        ItemStack nextIS = new ItemStack(Util.getCheckedMaterial(nextMatString, Material.FEATHER));
+        addItem(plugin.getPromptConfig().nextText, nextIS, nextLoc,
+                c -> {
+                    c.setCancelled(true);
+                    int next = Math.min((paginatedPane.getPage() + 1), pages);
                     paginatedPane.setPage(next);
                     gui.update();
                 });
 
-        var nextMatString = plugin.getPromptConfig().nextItem();
-        var nextIS = new ItemStack(Util.getCheckedMaterial(nextMatString, Material.FEATHER));
-        addItem(plugin.getPromptConfig().nextText(), nextIS, nextLoc,
-                c -> {
-                    c.setCancelled(true);
-                    var next = Math.min((paginatedPane.getPage() + 1), pages);
-                    paginatedPane.setPage(next);
-                    gui.update();
-                });
-
-        var cancelMatString = plugin.getPromptConfig().cancelItem();
-        var cancelIS = new ItemStack(Util.getCheckedMaterial(cancelMatString, Material.FEATHER));
-        addItem(plugin.getPromptConfig().cancelText(), cancelIS, cancelLoc,
+        String cancelMatString = plugin.getPromptConfig().cancelItem;
+        ItemStack cancelIS = new ItemStack(Util.getCheckedMaterial(cancelMatString, Material.FEATHER));
+        addItem(plugin.getPromptConfig().cancelText, cancelIS, cancelLoc,
                 c -> {
                     c.setCancelled(true);
                     plugin.getPromptManager().cancel(ctx.getSender());
@@ -84,7 +85,7 @@ public class ControlPane extends StaticPane {
     }
 
     private void addItem(String name, ItemStack itemStack, int x, Consumer<InventoryClickEvent> consumer) {
-        var itemMeta = itemStack.getItemMeta();
+        ItemMeta itemMeta = itemStack.getItemMeta();
         Objects.requireNonNull(itemMeta).setDisplayName(Util.color(name));
         itemStack.setItemMeta(itemMeta);
         addItem(new GuiItem(itemStack, consumer), x, 0);

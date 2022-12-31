@@ -12,6 +12,7 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.fusesource.jansi.Ansi;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
@@ -31,14 +32,14 @@ public class HookContainer extends HashMap<Class<?>, Hook<?>> implements Listene
 
     @Override
     public Hook<?> put(Class<?> key, Hook<?> value) {
-        var prefix = value.isHooked() ? new Ansi().fgRgb(153, 214, 90).a("✓").reset() :
+        Ansi prefix = value.isHooked() ? new Ansi().fgRgb(153, 214, 90).a("✓").reset() :
                 new Ansi().fgRgb(255, 96, 109).a("-").reset();
         plugin.getPluginLogger().info(prefix + " " + key.getSimpleName() + " contained");
         return super.put(key, value);
     }
 
     private <T> void hook(Class<T> pluginHook) {
-        var instance = constructHook(pluginHook);
+        Hook<T> instance = constructHook(pluginHook);
         this.put(pluginHook, instance);
     }
 
@@ -46,9 +47,9 @@ public class HookContainer extends HashMap<Class<?>, Hook<?>> implements Listene
         plugin.getPluginLogger().debug("Constructing hook: " + pluginHook.getSimpleName());
         if (!pluginHook.isAnnotationPresent(TargetPlugin.class)) return Hook.empty();
 
-        var targetPluginName = pluginHook.getAnnotation(TargetPlugin.class).pluginName();
+        String targetPluginName = pluginHook.getAnnotation(TargetPlugin.class).pluginName();
         plugin.getPluginLogger().debug("Hook target plugin name: " + targetPluginName);
-        var targetEnabled = Bukkit.getPluginManager().isPluginEnabled(targetPluginName);
+        boolean targetEnabled = Bukkit.getPluginManager().isPluginEnabled(targetPluginName);
         plugin.getPluginLogger().debug("Target enabled: " + targetEnabled);
         if (!targetEnabled) {
             plugin.getPluginLogger().debug(targetPluginName + " is not enabled. Could not hook.");
@@ -56,10 +57,10 @@ public class HookContainer extends HashMap<Class<?>, Hook<?>> implements Listene
         }
 
         try {
-            var constructor = pluginHook.getDeclaredConstructor(CommandPrompter.class);
+            Constructor<T> constructor = pluginHook.getDeclaredConstructor(CommandPrompter.class);
             constructor.setAccessible(true);
             plugin.getPluginLogger().debug("Hook construct: " + constructor.getName());
-            var instance = constructor.newInstance(plugin);
+            T instance = constructor.newInstance(plugin);
             if(instance instanceof Listener)
                 plugin.getServer().getPluginManager().registerEvents((Listener) instance, plugin);
             plugin.getPluginLogger().debug("Hook instance: " + instance.getClass());
@@ -72,7 +73,7 @@ public class HookContainer extends HashMap<Class<?>, Hook<?>> implements Listene
     }
 
     public <T> Hook<T> getHook(Class<T> hookClass) {
-        @SuppressWarnings("unchecked") var t = (Hook<T>) get(hookClass);
+        @SuppressWarnings("unchecked") Hook<T> t = (Hook<T>) getOrDefault(hookClass, Hook.empty());
         return t;
     }
 

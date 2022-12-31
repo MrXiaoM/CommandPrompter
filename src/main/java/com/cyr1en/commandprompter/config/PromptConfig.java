@@ -12,8 +12,8 @@ import com.cyr1en.kiso.mc.configuration.base.Config;
 @Configuration
 @ConfigPath("prompt-config.yml")
 @ConfigHeader({"Prompts", "Configuration"})
-public record PromptConfig(
-        Config rawConfig,
+public class PromptConfig {
+        Config rawConfig;
 
         @ConfigNode
         @NodeName("PlayerUI.Skull-Name-Format")
@@ -26,72 +26,86 @@ public record PromptConfig(
                 "Sorted - Should the player heads be sorted?",
                 "Per-World - Only show player in the current world?"
         })
-        String skullNameFormat,
+        public
+        String skullNameFormat;
 
         @ConfigNode
         @NodeName("PlayerUI.Size")
         @NodeDefault("54")
-        int playerUISize,
+        public
+        int playerUISize;
 
         @ConfigNode
         @NodeName("PlayerUI.Cache-Size")
         @NodeDefault("256")
-        int cacheSize,
+        public
+        int cacheSize;
 
         @ConfigNode
         @NodeName("PlayerUI.Previous.Item")
         @NodeDefault("Feather")
-        String previousItem,
+        public
+        String previousItem;
 
         @ConfigNode
         @NodeName("PlayerUI.Previous.Column")
         @NodeDefault("3")
-        int previousColumn,
+        public
+        int previousColumn;
 
         @ConfigNode
         @NodeName("PlayerUI.Previous.Text")
         @NodeDefault("&7◀◀ Previous")
-        String previousText,
+        public
+        String previousText;
 
         @ConfigNode
         @NodeName("PlayerUI.Next.Item")
         @NodeDefault("Feather")
-        String nextItem,
+        public
+        String nextItem;
 
         @ConfigNode
         @NodeName("PlayerUI.Next.Column")
         @NodeDefault("7")
-        int nextColumn,
+        public
+        int nextColumn;
 
         @ConfigNode
         @NodeName("PlayerUI.Next.Text")
         @NodeDefault("Next ▶▶")
-        String nextText,
+        public
+        String nextText;
 
         @ConfigNode
         @NodeName("PlayerUI.Cancel.Item")
         @NodeDefault("Barrier")
-        String cancelItem,
+        public
+        String cancelItem;
 
         @ConfigNode
         @NodeName("PlayerUI.Cancel.Column")
         @NodeDefault("5")
-        int cancelColumn,
+        public
+        int cancelColumn;
 
         @ConfigNode
         @NodeName("PlayerUI.Cancel.Text")
         @NodeDefault("&7Cancel ✘")
-        String cancelText,
+        public
+        String cancelText;
 
         @ConfigNode
         @NodeName("PlayerUI.Sorted")
         @NodeDefault("false")
-        boolean sorted,
+        public
+        boolean sorted;
 
         @ConfigNode
         @NodeName("PlayerUI.Per-World")
         @NodeDefault("false")
-        boolean isPerWorld,
+        public
+        boolean isPerWorld;
 
         @ConfigNode
         @NodeName("AnvilGUI.Enable-Title")
@@ -109,22 +123,26 @@ public record PromptConfig(
                 "Custom-Title - If title is enabled, and if custom",
                 "title is not empty, CommandPrompter will use this instead"
         })
-        boolean enableTitle,
+        public
+        boolean enableTitle;
 
         @ConfigNode
         @NodeName("AnvilGUI.Custom-Title")
         @NodeDefault("")
-        String customTitle,
+        public
+        String customTitle;
 
         @ConfigNode
         @NodeName("AnvilGUI.Item")
         @NodeDefault("Paper")
-        String anvilItem,
+        public
+        String anvilItem;
 
         @ConfigNode
         @NodeName("AnvilGUI.Enchanted")
         @NodeDefault("false")
-        boolean anvilEnchanted,
+        public
+        boolean anvilEnchanted;
 
         @ConfigNode
         @NodeName("TextPrompt.Clickable-Cancel")
@@ -145,22 +163,26 @@ public record PromptConfig(
                 "Available Priority - DEFAULT, LOW, LOWEST, NORMAL, HIGH",
                 "                     HIGHEST"
         })
-        boolean sendCancelText,
+        public
+        boolean sendCancelText;
 
         @ConfigNode
         @NodeName("TextPrompt.Cancel-Message")
         @NodeDefault("&7[&c&l✘&7]")
-        String textCancelMessage,
+        public
+        String textCancelMessage;
 
         @ConfigNode
         @NodeName("TextPrompt.Cancel-Hover-Message")
         @NodeDefault("&7Click here to cancel command completion")
-        String textCancelHoverMessage,
+        public
+        String textCancelHoverMessage;
 
         @ConfigNode
         @NodeName("TextPrompt.Response-Listener-Priority")
         @NodeDefault("DEFAULT")
-        String responseListenerPriority,
+        public
+        String responseListenerPriority;
 
         @ConfigNode
         @NodeName("SignUI.Input-Field-Location")
@@ -185,6 +207,5 @@ public record PromptConfig(
                 "Check wiki for Sign UI",
                 "https://github.com/CyR1en/CommandPrompter/wiki/Prompts"
         })
-        String inputFieldLocation
-) {
+        String inputFieldLocation;
 }

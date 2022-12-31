@@ -40,7 +40,6 @@ import org.fusesource.jansi.Ansi;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -79,15 +78,15 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
 
     @Override
     public Class<? extends Prompt> put(String key, Class<? extends Prompt> value) {
-        var ret = super.put(key, value);
+        Class<? extends Prompt> ret = super.put(key, value);
         plugin.getPluginLogger().info("Registered " +
                 new Ansi().fgRgb(153, 214, 90).a(value.getSimpleName()));
         return ret;
     }
 
     public void parse(PromptContext context) {
-        var queueHash = promptParser.parsePrompts(context);
-        var timeout = plugin.getConfiguration().promptTimeout();
+        int queueHash = promptParser.parsePrompts(context);
+        int timeout = plugin.getConfiguration().promptTimeout;
         scheduler.runTaskLater(plugin, () -> cancel(context.getSender(), queueHash), 20L * timeout);
     }
 
@@ -95,13 +94,13 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
         if (!promptRegistry.containsKey(sender)) return;
         if (promptRegistry.get(sender).isEmpty()) return;
         plugin.getPluginLogger().debug("PromptQueue for %s: %s", sender.getName(), promptRegistry.get(sender));
-        var prompt = Objects.requireNonNull(promptRegistry.get(sender).peek());
+        Prompt prompt = Objects.requireNonNull(promptRegistry.get(sender).peek());
         Bukkit.getScheduler().runTaskLater(plugin, prompt::sendPrompt, 2L);
         plugin.getPluginLogger().debug("Sent %s to %s", prompt.getClass().getSimpleName(), sender.getName());
     }
 
     public void processPrompt(PromptContext context) {
-        var sender = context.getSender();
+        CommandSender sender = context.getSender();
 
         if (!getPromptRegistry().containsKey(sender)) return;
         if (promptRegistry.get(sender).isEmpty()) return;
@@ -110,9 +109,9 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
         getPromptRegistry().get(sender).addCompleted(context.getContent());
         plugin.getPluginLogger().debug("PromptQueue for %s: %s", sender.getName(), promptRegistry.get(sender));
         if (promptRegistry.get(sender).isEmpty()) {
-            var queue = promptRegistry.get(sender);
+            PromptQueue queue = promptRegistry.get(sender);
 
-            var isCurrentOp = sender.isOp();
+            boolean isCurrentOp = sender.isOp();
             plugin.getPluginLogger().debug("Is Currently OP?: " + isCurrentOp);
             plugin.getPluginLogger().debug("PromptQueue OP: " + queue.isOp());
             if (queue.isOp() && !isCurrentOp) {
@@ -120,14 +119,14 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
                 plugin.getPluginLogger().debug("Gave OP status temporarily");
             }
             plugin.getPluginLogger().debug("Dispatching for %s: %s", sender.getName(), queue.getCompleteCommand());
-            if (plugin.getConfiguration().showCompleted())
+            if (plugin.getConfiguration().showCompleted)
                 plugin.getMessenger().sendMessage(sender, plugin.getI18N()
                         .getFormattedProperty("CompletedCommand", queue.getCompleteCommand()));
 
             if(queue.isSetPermissionAttachment())
                 Dispatcher.dispatchWithAttachment(plugin, (Player) sender, queue.getCompleteCommand(),
-                        plugin.getConfiguration().permissionAttachmentTicks(),
-                        plugin.getConfiguration().attachmentPermissions().toArray(new String[0]));
+                        plugin.getConfiguration().permissionAttachmentTicks,
+                        plugin.getConfiguration().attachmentPermissions.toArray(new String[0]));
             else
                 Dispatcher.dispatchCommand(plugin, (Player) sender, queue.getCompleteCommand());
 
@@ -141,8 +140,8 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
                 }, 2L);
             }
             promptRegistry.unregister(sender);
-        } else if (sender instanceof Player player)
-            sendPrompt(player);
+        } else if (sender instanceof Player)
+            sendPrompt(sender);
 
     }
 
@@ -169,11 +168,11 @@ public class PromptManager extends HashMap<String, Class<? extends Prompt>> {
     }
 
     public Pattern getArgumentPattern() {
-        var pattern = "-(%s) ";
-        var keySet = new HashSet<>(Set.copyOf(this.keySet()));
+        String pattern = "-(%s) ";
+        HashSet<String> keySet = new HashSet<>(this.keySet());
         keySet.remove("");
-        var arguments = String.join("|", keySet);
-        var compiled = Pattern.compile(pattern.formatted(arguments));
+        String arguments = String.join("|", keySet);
+        Pattern compiled = Pattern.compile(String.format(pattern, arguments));
         plugin.getPluginLogger().debug("ArgumentPattern: " + compiled);
         return compiled;
     }

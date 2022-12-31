@@ -17,7 +17,7 @@ public class Util {
 
     public static Material getCheckedMaterial(String materialString, Material defaultMaterial) {
         materialString = materialString.toUpperCase(Locale.ROOT);
-        var mat = Material.getMaterial(materialString);
+        Material mat = Material.getMaterial(materialString);
         return Objects.isNull(mat) ? defaultMaterial : mat;
     }
 }

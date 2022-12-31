@@ -45,7 +45,7 @@ public class PromptRegistry extends HashMap<CommandSender, PromptQueue> {
 
     public void initRegistryFor(PromptContext context, String command, String escapedRegex) {
         if (containsKey(context.getSender())) return;
-        var queue = new PromptQueue(command, context.getSender().isOp(), context.isSetPermissionAttachment(), escapedRegex);
+        PromptQueue queue = new PromptQueue(command, context.getSender().isOp(), context.isSetPermissionAttachment(), escapedRegex);
         put(context.getSender(), queue);
     }
 
