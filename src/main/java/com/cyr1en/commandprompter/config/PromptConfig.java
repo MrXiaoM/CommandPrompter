@@ -19,12 +19,11 @@ public class PromptConfig {
         @NodeName("PlayerUI.Skull-Name-Format")
         @NodeDefault("&6%s")
         @NodeComment({
-                "PlayerUI formatting", "",
-                "Skull-Name-Format - The display name format",
-                "                    for the player heads", "",
-                "Size - the size of the UI (multiple of 9, between 18-54)", "",
-                "Sorted - Should the player heads be sorted?",
-                "Per-World - Only show player in the current world?"
+                "选择玩家 UI 的样式设置", "",
+                "Skull-Name-Format - 玩家头颅物品显示名称", "",
+                "Size - UI 的大小 (应是 9 的倍数, 在 18-54 之间)", "",
+                "Sorted - 是否需要对玩家头颅进行排序?", "",
+                "Per-World - 是否只显示当前世界的玩家?"
         })
         public
         String skullNameFormat;
@@ -55,7 +54,7 @@ public class PromptConfig {
 
         @ConfigNode
         @NodeName("PlayerUI.Previous.Text")
-        @NodeDefault("&7◀◀ Previous")
+        @NodeDefault("&7◀◀ 上一页")
         public
         String previousText;
 
@@ -73,7 +72,7 @@ public class PromptConfig {
 
         @ConfigNode
         @NodeName("PlayerUI.Next.Text")
-        @NodeDefault("Next ▶▶")
+        @NodeDefault("下一页 ▶▶")
         public
         String nextText;
 
@@ -91,7 +90,7 @@ public class PromptConfig {
 
         @ConfigNode
         @NodeName("PlayerUI.Cancel.Text")
-        @NodeDefault("&7Cancel ✘")
+        @NodeDefault("&7取消 ✘")
         public
         String cancelText;
 
@@ -111,17 +110,11 @@ public class PromptConfig {
         @NodeName("AnvilGUI.Enable-Title")
         @NodeDefault("true")
         @NodeComment({
-                "AnvilUI formatting",
-                "",
-                "Enable-Title - Show the first line of the prompt",
-                "(if with {br}) as title of Anvil GUI",
-                "",
-                "Item - The item to place on the Anvil GUI",
-                "",
-                "Enchanted - Do you want the item enchanted?",
-                "",
-                "Custom-Title - If title is enabled, and if custom",
-                "title is not empty, CommandPrompter will use this instead"
+                "铁砧 UI 的样式设置", "",
+                "Enable-Title - 是否在补全的第一行显示铁砧 UI 的标题", "",
+                "Item - 放在铁砧 UI 上的物品 ID", "",
+                "Enchanted - 是否需要物品发出附魔光泽?", "",
+                "Custom-Title - 如果开启了标题，且补全时没有设置自定义标题，则会使用该默认标题"
         })
         public
         boolean enableTitle;
@@ -148,33 +141,26 @@ public class PromptConfig {
         @NodeName("TextPrompt.Clickable-Cancel")
         @NodeDefault("true")
         @NodeComment({
-                "Text Prompt Config",
-                "",
-                "Clickable-Cancel - Enable clickable cancel",
-                "",
-                "Cancel-Message - Clickable text message",
-                "",
-                "Cancel-Hover-Message - Message to show when",
-                "                       a player hovers over",
-                "                       the clickable cancel message.",
-                "",
-                "Response-Listener-Priority - Change the priority of",
-                "                             the response listener",
-                "Available Priority - DEFAULT, LOW, LOWEST, NORMAL, HIGH",
-                "                     HIGHEST"
+                "文本补全设置", "",
+                "Clickable-Cancel - 是否在聊天栏显示可点击的取消链接", "",
+                "Cancel-Message - 取消链接的文本", "",
+                "Cancel-Hover-Message - 取消链接的鼠标悬停信息", "",
+                "Response-Listener-Priority - 监听玩家回复的事件优先级",
+                "(可用的优先级有 DEFAULT, LOW, LOWEST, NORMAL, HIGH, HIGHEST)",
+                "(除非有特殊需要, 一般不需要修改优先级)"
         })
         public
         boolean sendCancelText;
 
         @ConfigNode
         @NodeName("TextPrompt.Cancel-Message")
-        @NodeDefault("&7[&c&l✘&7]")
+        @NodeDefault("&7[&c&l✘点击取消&7]")
         public
         String textCancelMessage;
 
         @ConfigNode
         @NodeName("TextPrompt.Cancel-Hover-Message")
-        @NodeDefault("&7Click here to cancel command completion")
+        @NodeDefault("&7点击取消该命令补全操作")
         public
         String textCancelHoverMessage;
 
@@ -188,24 +174,18 @@ public class PromptConfig {
         @NodeName("SignUI.Input-Field-Location")
         @NodeDefault("bottom")
         @NodeComment({
-                "Sign UI Settings",
+                "牌子 UI 设置",
                 "",
-                "Input-Field-Location - Which line should the answer",
-                "                       be read from.",
+                "Input-Field-Location - 需要玩家输入补全内容的位置 (功能未完成)",
                 "",
-                "Valid Input Field Locations",
-                "top - line 1 of the sign will be considered as the field.",
-                "top-aggregate - the prompt will be placed at the lowest",
-                "               possible line and the input would be",
-                "               the remaining lines on top.",
-                "bottom - line 4 of the sign will be considered as the",
-                "        field.",
-                "bottom-aggregate - the prompt will be placed at line",
-                "                  1 and the input would be the",
-                "                  remaining lines at the bottom",
+                "可用的位置如下",
+                "top - 第1行填写参数",
+                "top-aggregate - 第4行为提示，前3行都是要填写的参数",
+                "bottom - 第4行填写参数.",
+                "bottom-aggregate - 第1行为提示，后3行都是要填写的参数",
                 "",
-                "Check wiki for Sign UI",
-                "https://github.com/CyR1en/CommandPrompter/wiki/Prompts"
+                "查看 Wiki 寻找牌子 UI 的额外设置:",
+                "https://github.com/CyR1en/CommandPrompter/wiki/Prompts#signui-prompt"
         })
         String inputFieldLocation;
 }
