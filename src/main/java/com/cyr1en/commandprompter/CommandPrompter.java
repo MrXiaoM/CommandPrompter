@@ -78,10 +78,10 @@ public class CommandPrompter extends JavaPlugin {
         i18n = new I18N(this, "CommandPrompter");
         setupUpdater();
         setupCommands();
-        initPromptSystem();
         messenger = new PluginMessenger(config.promptPrefix);
         instance = this;
         Bukkit.getPluginManager().registerEvents(hookContainer = new HookContainer(this), this);
+        initPromptSystem();
     }
 
     @Override
@@ -97,7 +97,7 @@ public class CommandPrompter extends JavaPlugin {
         initCommandListener();
         Bukkit.getPluginManager().registerEvents(new PromptResponseListener(promptManager, this), this);
         PromptResponseListener.setPriority(this);
-        Bukkit.getPluginManager().registerEvents(headCache = new HeadCache(this), this);
+        headCache = new HeadCache(this);
     }
 
     /**
@@ -221,6 +221,7 @@ public class CommandPrompter extends JavaPlugin {
         promptManager.getParser().initRegex();
         PromptResponseListener.setPriority(this);
         setupUpdater();
+        headCache.setMaximumSize(promptConfig.cacheSize);
         if (clean)
             promptManager.clearPromptRegistry();
     }
