@@ -72,7 +72,7 @@ public class CommandPrompter extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        new Metrics(this, 5359);
+        //new Metrics(this, 5359);
         setupConfig();
         logger = new PluginLogger(this, "CommandPrompter");
         i18n = new I18N(this, "CommandPrompter");
