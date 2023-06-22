@@ -60,8 +60,10 @@ public class ControlPane extends StaticPane {
                 c -> {
                     c.setCancelled(true);
                     int prev = Math.max((paginatedPane.getPage() - 1), 0);
-                    paginatedPane.setPage(prev);
-                    gui.update();
+                    try {
+                        paginatedPane.setPage(prev);
+                        gui.update();
+                    } catch (Throwable ignored) {}
                 });
 
         String nextMatString = plugin.getPromptConfig().nextItem;
@@ -70,8 +72,10 @@ public class ControlPane extends StaticPane {
                 c -> {
                     c.setCancelled(true);
                     int next = Math.min((paginatedPane.getPage() + 1), pages);
-                    paginatedPane.setPage(next);
-                    gui.update();
+                    try {
+                        paginatedPane.setPage(next);
+                        gui.update();
+                    } catch (Throwable ignored) {}
                 });
 
         String cancelMatString = plugin.getPromptConfig().cancelItem;
