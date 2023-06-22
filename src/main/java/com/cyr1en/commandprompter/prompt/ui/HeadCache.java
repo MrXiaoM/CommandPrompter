@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class HeadCache implements Listener {
 
-    private final LoadingCache<Player, Optional<ItemStack>> HEAD_CACHE;
+    private LoadingCache<Player, Optional<ItemStack>> HEAD_CACHE = null;
 
     private final CommandPrompter plugin;
     private final String format;
@@ -35,11 +35,17 @@ public class HeadCache implements Listener {
     public HeadCache(CommandPrompter plugin) {
         this.plugin = plugin;
         this.format = plugin.getPromptConfig().skullNameFormat;
-        HEAD_CACHE = CacheBuilder.newBuilder().maximumSize(plugin.getPromptConfig().cacheSize)
+        setMaximumSize(plugin.getPromptConfig().cacheSize);
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    public void setMaximumSize(int size) {
+        if (HEAD_CACHE != null) HEAD_CACHE.cleanUp();
+        HEAD_CACHE = CacheBuilder.newBuilder().maximumSize(size)
                 .build(new CacheLoader<Player, Optional<ItemStack>>() {
                     @Override
                     public @NotNull Optional<ItemStack> load(@NotNull Player key) {
-                        if (!Bukkit.getOnlinePlayers().contains(key))
+                        if (!key.isOnline())
                             return Optional.empty();
                         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
                         SkullMeta skullMeta = makeSkullMeta(key, plugin.getPluginLogger());
@@ -47,6 +53,9 @@ public class HeadCache implements Listener {
                         return Optional.of(skull);
                     }
                 });
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            onPlayerJoin(p);
+        }
     }
 
     public Optional<ItemStack> getHeadFor(Player player) {
@@ -120,18 +129,22 @@ public class HeadCache implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onPlayerLogin(PlayerLoginEvent e) {
+        onPlayerJoin(e.getPlayer());
+    }
+
+    public void onPlayerJoin(Player p) {
         AtomicBoolean isInv = new AtomicBoolean(false);
         Hook<SuperVanishHook> svHook = plugin.getHookContainer().getHook(SuperVanishHook.class);
         plugin.getPluginLogger().debug("SV Hooked: " + svHook.isHooked());
         svHook.ifHooked(hook -> {
-            if (hook.isInvisible(e.getPlayer()))
+            if (hook.isInvisible(p))
                 isInv.set(true);
         });
         if (isInv.get()) {
             plugin.getPluginLogger().debug("Player is vanished (SuperVanish) skipping skull cache");
             return;
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> HEAD_CACHE.getUnchecked(e.getPlayer()));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> HEAD_CACHE.getUnchecked(p));
     }
 
     @EventHandler
